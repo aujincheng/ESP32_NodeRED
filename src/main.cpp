@@ -1,18 +1,23 @@
-#include<Arduino.h>>
-#include<WiFi.h>>
-#include<PubSubClient.h>>
+#include<Arduino.h>
+#include<WiFi.h>
+#include<PubSubClient.h>
 
 // WiFi
-const char* ssid = "REPLACE_WITH_YOUR_SSID";
-const char* password = "REPLACE_WITH_YOUR_PASSWORD";
+//const char* ssid = "jin";
+//const char* password = "simplyput123";
+const char* ssid = "sl2523@unifi";
+const char* password = "0124362208";
 
 // MQTT
-const char* mqtt_server = "YOUR_MQTT_BROKER_IP_ADDRESS";
+const char* mqtt_server = "192.168.0.108";
+//IPAddress mqtt_server = (127, 0, 0, 1);
 
-WiFiClient espClient1;
-PubSubClient client(espClient1);
+WiFiClient espClient;
+PubSubClient client(espClient);
 
 long lastMsg = 0;
+void reconnect();
+void setup_wifi();
 
 void setup()
 {
@@ -20,13 +25,11 @@ void setup()
     Serial.begin(115200);
     pinMode(4,OUTPUT);
 
-    digitalWrite(4,HIGH);
-    delay(2000);
-    digitalWrite(4,LOW);
-
     setup_wifi();
 
     client.setServer(mqtt_server, 1883);
+    client.subscribe("esp32/output");
+    client.connect("esp32/output");
 
 }
 
@@ -37,18 +40,14 @@ void loop()
   }
   client.loop();
 
-  long now = millis();
-  if (now - lastMsg > 5000) {
-    lastMsg = now;
-    
- 
-    char tempString[8];
-    client.publish("esp32/temperature", tempString);
+  delay(1000);
+
+  client.publish("esp32/temperature","21.6");
 
     
     
   }
-}
+
 
 void setup_wifi()
 {
@@ -76,11 +75,11 @@ void reconnect() {
     while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     // Attempt to connect
-    if (client.connect("ESP8266Client")) {
+    if(client.connect("esp32"))
+    {
       Serial.println("connected");
-      // Subscribe
-      client.subscribe("esp32/output");
-    } else {
+    }
+    else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
       Serial.println(" try again in 5 seconds");
